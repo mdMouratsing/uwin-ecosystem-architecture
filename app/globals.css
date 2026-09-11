@@ -1,0 +1,161 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ===========================================================================
+   IDS Platform — Design System Tokens
+   ===========================================================================
+   Three brand families share structural tokens (radius, spacing, typography)
+   but define their own primary/accent colors. The active brand is selected by
+   adding a class to a root element: .brand-ids, .brand-uwin, .brand-retailflow.
+   Default (no class) uses IDS Platform tokens.
+   */
+
+@layer base {
+  :root {
+    /* Structural tokens — shared across all brand families */
+    --radius: 0.5rem;
+
+    /* IDS Platform (base) — charcoal/copper */
+    --background: 0 0% 100%;
+    --foreground: 220 15% 10%;
+    --card: 0 0% 100%;
+    --card-foreground: 220 15% 10%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 15% 10%;
+
+    --primary: 220 20% 14%;
+    --primary-foreground: 40 30% 96%;
+    --secondary: 220 10% 95%;
+    --secondary-foreground: 220 15% 12%;
+    --muted: 220 10% 95%;
+    --muted-foreground: 220 8% 44%;
+    --accent: 24 72% 52%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 98%;
+    --success: 152 56% 40%;
+    --success-foreground: 0 0% 100%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 12%;
+    --border: 220 10% 90%;
+    --input: 220 10% 90%;
+    --ring: 24 72% 52%;
+
+    --chart-1: 24 72% 52%;
+    --chart-2: 152 56% 40%;
+    --chart-3: 200 65% 45%;
+    --chart-4: 38 92% 50%;
+    --chart-5: 340 60% 52%;
+
+    /* Sidebar specific */
+    --sidebar-background: 220 20% 12%;
+    --sidebar-foreground: 220 10% 85%;
+    --sidebar-accent: 24 72% 52%;
+    --sidebar-accent-foreground: 0 0% 100%;
+  }
+
+  /* uWin consumer family — teal/amber-gold */
+  .brand-uwin {
+    --primary: 190 85% 28%;
+    --primary-foreground: 190 30% 97%;
+    --accent: 40 88% 50%;
+    --accent-foreground: 30 20% 12%;
+    --ring: 190 85% 28%;
+    --chart-1: 190 85% 28%;
+    --chart-2: 40 88% 50%;
+    --chart-3: 160 60% 38%;
+    --chart-4: 200 70% 48%;
+    --chart-5: 30 80% 55%;
+    --sidebar-background: 190 60% 14%;
+    --sidebar-foreground: 190 20% 82%;
+    --sidebar-accent: 40 88% 50%;
+    --sidebar-accent-foreground: 30 20% 12%;
+  }
+
+  /* RetailFlow business family — slate-blue/emerald */
+  .brand-retailflow {
+    --primary: 215 45% 28%;
+    --primary-foreground: 210 30% 97%;
+    --accent: 152 52% 40%;
+    --accent-foreground: 150 20% 8%;
+    --ring: 215 45% 28%;
+    --chart-1: 215 45% 28%;
+    --chart-2: 152 52% 40%;
+    --chart-3: 200 60% 42%;
+    --chart-4: 34 82% 52%;
+    --chart-5: 260 45% 55%;
+    --sidebar-background: 215 40% 14%;
+    --sidebar-foreground: 210 15% 82%;
+    --sidebar-accent: 152 52% 40%;
+    --sidebar-accent-foreground: 150 20% 8%;
+  }
+
+  .dark {
+    --background: 220 20% 8%;
+    --foreground: 210 12% 92%;
+    --card: 220 18% 11%;
+    --card-foreground: 210 12% 92%;
+    --popover: 220 18% 11%;
+    --popover-foreground: 210 12% 92%;
+
+    --primary: 40 30% 96%;
+    --primary-foreground: 220 20% 14%;
+    --secondary: 220 14% 16%;
+    --secondary-foreground: 210 12% 92%;
+    --muted: 220 14% 16%;
+    --muted-foreground: 220 10% 60%;
+    --accent: 24 72% 52%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 62% 42%;
+    --destructive-foreground: 0 0% 98%;
+    --success: 152 56% 42%;
+    --success-foreground: 0 0% 100%;
+    --warning: 38 92% 52%;
+    --warning-foreground: 0 0% 12%;
+    --border: 220 14% 18%;
+    --input: 220 14% 18%;
+    --ring: 24 72% 52%;
+
+    --sidebar-background: 220 24% 6%;
+    --sidebar-foreground: 210 10% 78%;
+    --sidebar-accent: 24 72% 52%;
+    --sidebar-accent-foreground: 0 0% 100%;
+  }
+
+  .dark.brand-uwin {
+    --primary: 190 80% 45%;
+    --primary-foreground: 190 20% 8%;
+    --accent: 40 88% 55%;
+    --sidebar-background: 190 50% 8%;
+    --sidebar-foreground: 190 15% 75%;
+    --sidebar-accent: 40 88% 55%;
+  }
+
+  .dark.brand-retailflow {
+    --primary: 215 50% 55%;
+    --primary-foreground: 215 20% 10%;
+    --accent: 152 52% 48%;
+    --sidebar-background: 215 35% 8%;
+    --sidebar-foreground: 210 12% 75%;
+    --sidebar-accent: 152 52% 48%;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+/* Typography scale */
+@layer base {
+  h1 { font-size: 2rem; line-height: 1.2; font-weight: 700; }
+  h2 { font-size: 1.5rem; line-height: 1.25; font-weight: 700; }
+  h3 { font-size: 1.25rem; line-height: 1.3; font-weight: 600; }
+  h4 { font-size: 1.125rem; line-height: 1.35; font-weight: 600; }
+  p { line-height: 1.5; }
+}
