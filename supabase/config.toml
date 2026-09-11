@@ -1,0 +1,2 @@
+[functions.sso-token-exchange]
+verify_jwt = false

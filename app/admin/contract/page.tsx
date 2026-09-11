@@ -148,21 +148,16 @@ Consumer Apps              Business Apps`}
       </Section>
 
       {/* Vouchers & Campaigns */}
-      <Section title="Voucher &amp; Campaign Architecture" icon={Ticket}>
+      <Section title="Voucher, Coupon &amp; Campaign Architecture" icon={Ticket}>
         <p className="text-sm text-muted-foreground">
-          Vouchers are distinct from promo codes and loyalty rewards. Templates define properties and
-          rules; batches issue individual vouchers with unique codes. The campaign engine supports
-          points bonuses, voucher distributions, discounts, cashback, challenges, referrals, and
-          targeted promotions with segmentation by tier, merchant, location, category, and channel.
+          Vouchers are digital instruments with unique codes assigned to users. Coupons are promotional codes applied at checkout — they can be multi-use and time-limited. Both are distinct from loyalty rewards (points earned through the Rewards Engine). The campaign engine supports points bonuses, voucher/coupon distributions, discounts, cashback, challenges, referrals, and targeted promotions with segmentation by tier, merchant, location, category, and channel.
         </p>
       </Section>
 
       {/* Notifications */}
       <Section title="Shared Notification Service" icon={Bell}>
         <p className="text-sm text-muted-foreground">
-          All apps publish notifications through one common service. Supports in-app, push, email,
-          and SMS channels. Mandatory transactional messages are distinguished from marketing
-          communication. Users control their preferences per channel and category.
+          All apps publish notifications through one common service. Supports in-app, push (Firebase Cloud Messaging), email, and SMS channels. Mandatory transactional messages are distinguished from marketing communication. Users control their preferences per channel and category. Webhooks are signed using OAuth 2.0 with HMAC-SHA256.
         </p>
       </Section>
 
@@ -189,8 +184,10 @@ Consumer Apps              Business Apps`}
           <Badge variant="outline" className="font-mono">/api/v1/wallets</Badge>
           <Badge variant="outline" className="font-mono">/api/v1/rewards</Badge>
           <Badge variant="outline" className="font-mono">/api/v1/vouchers</Badge>
+          <Badge variant="outline" className="font-mono">/api/v1/coupons</Badge>
           <Badge variant="outline" className="font-mono">/api/v1/campaigns</Badge>
           <Badge variant="outline" className="font-mono">/api/v1/notifications</Badge>
+          <Badge variant="outline" className="font-mono">/api/v1/auth/token</Badge>
         </div>
       </Section>
 
@@ -263,6 +260,7 @@ const SERVICES = [
   { name: 'Wallet Service', icon: Wallet, entities: ['Wallet', 'WalletTransaction'] },
   { name: 'Rewards Service', icon: Award, entities: ['RewardProgramme', 'RewardTransaction'] },
   { name: 'Voucher Service', icon: Ticket, entities: ['VoucherTemplate', 'Voucher'] },
+  { name: 'Coupon Service', icon: Ticket, entities: ['CouponTemplate', 'Coupon'] },
   { name: 'Campaign Service', icon: Megaphone, entities: ['Campaign', 'CampaignRule'] },
   { name: 'Notification Service', icon: Bell, entities: ['Notification', 'NotificationTemplate'] },
   { name: 'Analytics Service', icon: BarChart3, entities: ['AnalyticsEvent'] },

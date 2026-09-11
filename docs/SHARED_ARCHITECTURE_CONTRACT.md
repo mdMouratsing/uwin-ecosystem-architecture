@@ -1,7 +1,7 @@
 ```text
 Document: IDS uWin & RetailFlow Shared Architecture Contract
-Version: 1.0
-Status: Foundation Architecture
+Version: 1.1
+Status: Foundation Architecture (All Open Decisions Resolved)
 Last Updated: 2026-09-11
 Owner: IDS — Intelligent Digitalisation Solutions
 ```
@@ -83,6 +83,12 @@ Owns: `RewardProgramme`, `RewardRule`, `RewardAccount`, `RewardTransaction`, `Re
 
 Owns: `VoucherTemplate`, `Voucher`, `VoucherRedemption`
 
+### Coupon / Promo Code Service (Implemented)
+
+Owns: `CouponTemplate`, `Coupon`, `CouponRedemption`
+
+Coupons are distinct from vouchers and loyalty rewards. Coupons are promotional codes applied at checkout for a discount — they can be multi-use, time-limited, and category/merchant restricted. The `redeem_coupon()` SECURITY DEFINER function validates eligibility, records redemption, and increments usage counters atomically.
+
 ### Campaign Service
 
 Owns: `Campaign`, `CampaignRule`, `CampaignTarget`
@@ -114,6 +120,7 @@ Owns: `Role`, `Permission`, `RolePermission`, `UserRole`, scope definitions
 | `reward_programme_id` | Referencing a rewards programme |
 | `reward_account_id` | Referencing a user's account within a programme |
 | `voucher_id` | Referencing an issued voucher |
+| `coupon_id` | Referencing an issued coupon/promo code |
 | `campaign_id` | Referencing a campaign across rules, targets, redemptions |
 | `notification_id` | Referencing a notification record |
 | `application_code` | Identifying which app/channel initiated an activity (see §5) |
@@ -220,6 +227,10 @@ vouchers
 voucher_redemptions
 voucher_rules
 
+coupon_templates
+coupons
+coupon_redemptions
+
 campaigns
 campaign_rules
 campaign_targets
@@ -252,6 +263,7 @@ webhook_subscriptions
 | User | `pending`, `active`, `suspended`, `closed` |
 | Merchant | `draft`, `pending_review`, `active`, `suspended`, `inactive` |
 | Voucher | `issued`, `active`, `redeemed`, `expired`, `cancelled` |
+| Coupon | `issued`, `active`, `redeemed`, `expired`, `cancelled` |
 | Campaign | `draft`, `scheduled`, `active`, `paused`, `completed`, `cancelled` |
 | Wallet Transaction | `pending`, `completed`, `failed`, `reversed` |
 
@@ -272,12 +284,20 @@ webhook_subscriptions
 - Row Level Security on all identity tables — users see only their own identity/profile/consent data
 - Column-level UPDATE privileges revoked on `users.status` — status changes go through `set_user_status()` SECURITY DEFINER function
 
+### Implemented — SSO Token Exchange (Implemented)
+
+- Cross-app Single Sign-On uses a **token exchange** pattern
+- The `sso-token-exchange` Supabase Edge Function accepts a current session JWT and a target application code
+- It validates the session against Supabase Auth, confirms the user exists in the platform `users` table, and returns a scoped access token with the `applicationCode` and `userId` embedded
+- The receiving app uses the scoped token to identify the user and the originating ecosystem context — no re-authentication required
+- Endpoint: `POST /api/v1/auth/token` (see OpenAPI spec at `docs/openapi.json`)
+- The function is deployed at `supabase/functions/sso-token-exchange/index.ts`
+
 ### Planned
 
 - Mobile number and OTP authentication (data model architected, not wired to UI)
 - Passwordless login (data model architected, not wired to UI)
 - Social authentication (data model architected, not wired to UI)
-- Single Sign-On (SSO) allowing users to switch applications without re-authenticating — architectural foundation in place (one identity, one session), cross-app SSO flow not yet implemented
 
 ---
 
@@ -829,13 +849,19 @@ persona_insight      — Persona Insight
 payment_gateway      — Payment Gateway (provider TBD)
 sms_provider         — SMS Provider (provider TBD)
 email_provider       — Email Provider (provider TBD)
-push_notification    — Push Notification Service (provider TBD)
+push_notification    — Firebase Cloud Messaging (FCM) — Implemented, active
 mapping_service      — Mapping Service (provider TBD)
 accounting_system    — Accounting System (provider TBD)
 pos_system           — POS System (provider TBD)
 ```
 
-All are seeded with `is_active = false`. Future apps must not hard-code vendor-specific integration logic. External API calls that need server-side secrets must be proxied through Supabase Edge Functions.
+All are seeded with `is_active = false` except `push_notification` (now active with Firebase Cloud Messaging) and `webhook_signing` (now active with OAuth protocol). Future apps must not hard-code vendor-specific integration logic. External API calls that need server-side secrets must be proxied through Supabase Edge Functions.
+
+### Push Notification Provider (Implemented)
+
+- **Firebase Cloud Messaging (FCM)** is the designated push notification provider
+- `integration_configs` record for `push_notification` is set to `is_active = true` with provider `Firebase Cloud Messaging`
+- Future apps must use FCM through the shared notification service, not a separate push provider
 
 ### Webhook Payload Structure (Signature-Ready)
 
@@ -848,7 +874,28 @@ All are seeded with `is_active = false`. Future apps must not hard-code vendor-s
 }
 ```
 
-The `secret` column on `webhook_subscriptions` is used to sign outgoing payloads (HMAC implementation: Planned).
+### Webhook Signing Protocol (Implemented)
+
+- Outgoing webhooks are signed using the **OAuth 2.0 protocol** with **HMAC-SHA256** algorithm
+- A `webhook_signing` integration config record is seeded with `is_active = true`, containing:
+  - `signing_protocol`: `oauth2`
+  - `algorithm`: `HMAC-SHA256`
+  - `token_endpoint`: `/api/v1/auth/token`
+- The `secret` column on `webhook_subscriptions` stores the HMAC signing key
+- Receivers validate the `X-Webhook-Signature` header using the shared secret
+
+### Webhook Payload Structure
+
+```json
+{
+  "eventId": "uuid",
+  "eventType": "reward.earned",
+  "timestamp": "2026-09-11T12:00:00Z",
+  "payload": {}
+}
+```
+
+The payload is signed with HMAC-SHA256 using the subscription's `secret`. The signature is sent in the `X-Webhook-Signature` header.
 
 ---
 
@@ -869,10 +916,12 @@ The `secret` column on `webhook_subscriptions` is used to sign outgoing payloads
 - **Consent/privacy handling:** `user_consents` and `consent_history` (append-only) tables; consent history is never updated or deleted
 - **Error messages:** `getUserFacingMessage()` in the API client maps known error codes to safe user-facing messages; raw database errors are never rendered to the UI
 
+### Not Required
+
+- Rate limiting: not needed for the current platform scope. May be revisited when traffic patterns are known.
+
 ### Planned
 
-- HMAC signature verification for outgoing webhooks
-- Rate limiting on API endpoints
 - IP address and user agent capture on audit logs (fields exist, not yet populated)
 
 ---
@@ -926,6 +975,9 @@ Voucher
 VoucherBatch
 VoucherRedemption
 VoucherRule
+CouponTemplate
+Coupon
+CouponRedemption
 Campaign
 CampaignRule
 CampaignTarget
@@ -968,6 +1020,8 @@ WalletAssetType
 WalletTransactionType
 WalletTransactionStatus
 VoucherType
+CouponType
+CouponStatus
 CampaignType
 NotificationType
 NotificationChannelType
@@ -998,6 +1052,7 @@ Future apps must not create independent versions of:
 - Wallet
 - Rewards ledger
 - Voucher infrastructure
+- Coupon / promo code infrastructure
 - Campaign infrastructure
 - Notification preferences
 - RBAC infrastructure
@@ -1043,6 +1098,50 @@ If cross-ecosystem, add it to the shared platform first:
 
 ---
 
+## 25a. Resolved Architecture Decisions (v1.1)
+
+All open architectural decisions from v1.0 have been resolved:
+
+| # | Decision | Resolution | Status |
+|---|----------|-----------|--------|
+| 1 | Coupon / promo code architecture | Added to the shared platform as `coupon_templates`, `coupons`, `coupon_redemptions` tables with `redeem_coupon()` function | Implemented |
+| 2 | SSO cross-app session flow | Token exchange pattern via `sso-token-exchange` Edge Function at `POST /api/v1/auth/token` | Implemented |
+| 3 | Push notification provider | Firebase Cloud Messaging (FCM) — `integration_configs` record activated | Implemented |
+| 4 | Webhook HMAC signing | OAuth 2.0 protocol with HMAC-SHA256 algorithm — `webhook_signing` integration config activated | Implemented |
+| 5 | API specification | OpenAPI 3.1.0 JSON spec created at `docs/openapi.json` | Implemented |
+| 6 | Rate limiting | Not required for current scope — deferred until traffic patterns are known | Decision |
+| 7 | Mauritian Creole translations | Not needed. Multi-language support (EN/FR) is implemented and extensible to additional locales without Mauritian Creole | Decision |
+
+### OpenAPI / Swagger Specification
+
+The canonical API contract is published as an OpenAPI 3.1.0 JSON specification at `docs/openapi.json`. It defines:
+
+- All canonical/reserved endpoints (users, profiles, organisations, merchants, wallets, rewards, vouchers, coupons, campaigns, notifications, analytics)
+- The `process_cross_service_transaction` operation
+- The SSO token exchange endpoint (`POST /api/v1/auth/token`)
+- Standard request/response schemas for every domain object
+- Pagination, filtering, and sorting parameters
+- Bearer token authentication scheme
+- Standard error response format
+
+Future apps should reference this spec for API integration. It can be imported into Swagger UI, Postman, or code generators.
+
+### Multi-Language Support
+
+The platform supports multiple languages through the `packages/i18n` module. Currently implemented:
+
+- English (`en`) — default
+- French (`fr`)
+
+Additional languages can be added by:
+1. Adding a new locale object to the `translations` map in `packages/i18n/index.ts`
+2. Seeding a record in the `languages` database table
+3. Adding the language code to each country's `supported_languages` array
+
+Mauritian Creole (`mfe`) is not required and will not be added unless explicitly requested in the future.
+
+---
+
 ## 25. Mandatory Preamble for Future Bolt Projects
 
 # Mandatory Instructions for Any New App Project
@@ -1061,4 +1160,4 @@ If cross-ecosystem, add it to the shared platform first:
 
 ---
 
-*End of Architecture Contract v1.0*
+*End of Architecture Contract v1.1*

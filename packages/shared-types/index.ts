@@ -723,6 +723,75 @@ export interface VoucherRule {
 }
 
 // ---------------------------------------------------------------------------
+// Coupons / Promo Codes
+// ---------------------------------------------------------------------------
+
+export type CouponType =
+  | 'percentage'
+  | 'fixed_discount'
+  | 'free_shipping'
+  | 'buy_one_get_one'
+  | 'fixed_amount_off';
+
+export type CouponStatus = 'issued' | 'active' | 'redeemed' | 'expired' | 'cancelled';
+
+export interface CouponTemplate {
+  id: UUID;
+  name: string;
+  description: string | null;
+  couponType: CouponType;
+  discountValue: number;
+  discountPercentage: number | null;
+  currencyCode: CurrencyCode;
+  merchantId: UUID | null;
+  campaignId: UUID | null;
+  validFrom: ISO8601;
+  validUntil: ISO8601;
+  maxTotalRedemptions: number | null;
+  maxRedemptionsPerUser: number;
+  minSpend: number | null;
+  maxDiscount: number | null;
+  categoryRestrictions: string[];
+  merchantRestrictions: UUID[];
+  termsAndConditions: string | null;
+  isMultiUse: boolean;
+  status: EntityStatus;
+  createdAt: ISO8601;
+  updatedAt: ISO8601;
+}
+
+export interface Coupon {
+  id: UUID;
+  templateId: UUID;
+  code: string;
+  couponType: CouponType;
+  discountValue: number;
+  discountPercentage: number | null;
+  currencyCode: CurrencyCode;
+  assignedToUserId: UUID | null;
+  isSingleUse: boolean;
+  timesUsed: number;
+  status: CouponStatus;
+  issuedAt: ISO8601;
+  firstUsedAt: ISO8601 | null;
+  lastUsedAt: ISO8601 | null;
+  expiredAt: ISO8601 | null;
+  createdAt: ISO8601;
+}
+
+export interface CouponRedemption {
+  id: UUID;
+  couponId: UUID;
+  userId: UUID;
+  merchantId: UUID | null;
+  orderAmount: number | null;
+  discountApplied: number | null;
+  applicationCode: ApplicationCode | null;
+  redeemedAt: ISO8601;
+  createdAt: ISO8601;
+}
+
+// ---------------------------------------------------------------------------
 // Campaigns
 // ---------------------------------------------------------------------------
 

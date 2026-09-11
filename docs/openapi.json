@@ -1,0 +1,698 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "IDS uWin & RetailFlow Shared Platform API",
+    "description": "Canonical API contract for the IDS shared platform. All future uWin and RetailFlow applications must use these endpoints and conventions. This specification defines the reserved/canonical endpoints. Individual applications may add app-specific routes but must not duplicate these platform routes.",
+    "version": "1.0.0",
+    "contact": {
+      "name": "IDS — Intelligent Digitalisation Solutions",
+      "url": "https://ids.mu"
+    }
+  },
+  "servers": [
+    {
+      "url": "/api/v1",
+      "description": "Platform API v1"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "Supabase auth session JWT token"
+      }
+    },
+    "schemas": {
+      "ApiResponse": {
+        "type": "object",
+        "properties": {
+          "data": {},
+          "meta": {
+            "$ref": "#/components/schemas/ResponseMeta"
+          }
+        },
+        "required": ["data"]
+      },
+      "ApiListResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {}
+          },
+          "meta": {
+            "$ref": "#/components/schemas/ResponseMeta"
+          }
+        },
+        "required": ["data", "meta"]
+      },
+      "ResponseMeta": {
+        "type": "object",
+        "properties": {
+          "page": { "type": "integer", "minimum": 1 },
+          "pageSize": { "type": "integer", "minimum": 1, "maximum": 100 },
+          "total": { "type": "integer", "minimum": 0 },
+          "totalPages": { "type": "integer", "minimum": 0 },
+          "cursor": { "type": "string", "nullable": true }
+        }
+      },
+      "ApiError": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "object",
+            "properties": {
+              "code": { "type": "string" },
+              "message": { "type": "string" },
+              "details": { "type": "object", "additionalProperties": true }
+            },
+            "required": ["code", "message"]
+          }
+        },
+        "required": ["error"]
+      },
+      "User": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "email": { "type": "string", "format": "email" },
+          "status": { "type": "string", "enum": ["pending", "active", "suspended", "closed"] },
+          "primaryOrganisationId": { "type": "string", "format": "uuid", "nullable": true },
+          "preferredLanguage": { "type": "string", "enum": ["en", "fr"] },
+          "countryCode": { "type": "string" },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "updatedAt": { "type": "string", "format": "date-time" },
+          "deactivatedAt": { "type": "string", "format": "date-time", "nullable": true }
+        },
+        "required": ["id", "email", "status", "preferredLanguage", "countryCode"]
+      },
+      "Profile": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "userId": { "type": "string", "format": "uuid" },
+          "firstName": { "type": "string", "nullable": true },
+          "surname": { "type": "string", "nullable": true },
+          "preferredName": { "type": "string", "nullable": true },
+          "primaryMobile": { "type": "string", "nullable": true },
+          "primaryEmail": { "type": "string", "nullable": true },
+          "profileImageUrl": { "type": "string", "nullable": true },
+          "preferredLanguage": { "type": "string", "enum": ["en", "fr"] },
+          "countryCode": { "type": "string" },
+          "currencyCode": { "type": "string" },
+          "timezone": { "type": "string" },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "updatedAt": { "type": "string", "format": "date-time" }
+        },
+        "required": ["id", "userId", "preferredLanguage", "countryCode", "currencyCode"]
+      },
+      "Organisation": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "name": { "type": "string" },
+          "legalName": { "type": "string", "nullable": true },
+          "organisationTypeCode": { "type": "string" },
+          "status": { "type": "string" },
+          "countryCode": { "type": "string" },
+          "contactEmail": { "type": "string", "nullable": true },
+          "contactPhone": { "type": "string", "nullable": true },
+          "websiteUrl": { "type": "string", "nullable": true },
+          "logoUrl": { "type": "string", "nullable": true },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "updatedAt": { "type": "string", "format": "date-time" }
+        },
+        "required": ["id", "name", "organisationTypeCode", "status", "countryCode"]
+      },
+      "Merchant": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "organisationId": { "type": "string", "format": "uuid" },
+          "merchantName": { "type": "string" },
+          "tradingName": { "type": "string", "nullable": true },
+          "description": { "type": "string", "nullable": true },
+          "logoUrl": { "type": "string", "nullable": true },
+          "coverImageUrl": { "type": "string", "nullable": true },
+          "websiteUrl": { "type": "string", "nullable": true },
+          "contactPhone": { "type": "string", "nullable": true },
+          "contactEmail": { "type": "string", "nullable": true },
+          "countryCode": { "type": "string" },
+          "status": { "type": "string", "enum": ["draft", "pending_review", "active", "suspended", "inactive"] },
+          "loyaltyParticipation": { "type": "boolean" },
+          "voucherAcceptance": { "type": "boolean" },
+          "rating": { "type": "number", "format": "float", "nullable": true },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "updatedAt": { "type": "string", "format": "date-time" }
+        },
+        "required": ["id", "organisationId", "merchantName", "countryCode", "status", "loyaltyParticipation", "voucherAcceptance"]
+      },
+      "Wallet": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "userId": { "type": "string", "format": "uuid" },
+          "label": { "type": "string", "nullable": true },
+          "status": { "type": "string" },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "updatedAt": { "type": "string", "format": "date-time" }
+        },
+        "required": ["id", "userId", "status"]
+      },
+      "WalletTransaction": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "walletId": { "type": "string", "format": "uuid" },
+          "walletAccountId": { "type": "string", "format": "uuid" },
+          "transactionType": { "type": "string", "enum": ["credit", "debit", "earn", "redeem", "adjustment", "expiry", "refund", "reversal", "transfer"] },
+          "assetType": { "type": "string", "enum": ["loyalty_points", "cashback", "promotional_credit", "gift_card", "prepaid_balance", "merchant_credit"] },
+          "amount": { "type": "number" },
+          "currencyCode": { "type": "string" },
+          "source": { "type": "string", "nullable": true },
+          "merchantId": { "type": "string", "format": "uuid", "nullable": true },
+          "campaignId": { "type": "string", "format": "uuid", "nullable": true },
+          "applicationCode": { "type": "string", "nullable": true },
+          "idempotencyKey": { "type": "string", "nullable": true },
+          "status": { "type": "string", "enum": ["pending", "completed", "failed", "reversed"] },
+          "description": { "type": "string", "nullable": true },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "reversedAt": { "type": "string", "format": "date-time", "nullable": true }
+        },
+        "required": ["id", "walletId", "walletAccountId", "transactionType", "assetType", "amount", "currencyCode", "status", "createdAt"]
+      },
+      "RewardProgramme": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "name": { "type": "string" },
+          "description": { "type": "string", "nullable": true },
+          "programmeType": { "type": "string", "enum": ["points", "cashback", "hybrid"] },
+          "status": { "type": "string" },
+          "countryCode": { "type": "string" },
+          "startsAt": { "type": "string", "format": "date-time", "nullable": true },
+          "endsAt": { "type": "string", "format": "date-time", "nullable": true },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "updatedAt": { "type": "string", "format": "date-time" }
+        },
+        "required": ["id", "name", "programmeType", "status", "countryCode"]
+      },
+      "RewardAccount": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "userId": { "type": "string", "format": "uuid" },
+          "programmeId": { "type": "string", "format": "uuid" },
+          "tierId": { "type": "string", "format": "uuid", "nullable": true },
+          "totalPointsEarned": { "type": "integer" },
+          "totalPointsRedeemed": { "type": "integer" },
+          "currentBalance": { "type": "integer" },
+          "status": { "type": "string" },
+          "enrolledAt": { "type": "string", "format": "date-time" },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "updatedAt": { "type": "string", "format": "date-time" }
+        },
+        "required": ["id", "userId", "programmeId", "currentBalance", "status"]
+      },
+      "Voucher": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "templateId": { "type": "string", "format": "uuid" },
+          "code": { "type": "string" },
+          "qrCode": { "type": "string", "nullable": true },
+          "voucherType": { "type": "string", "enum": ["monetary", "percentage", "fixed_discount", "product", "service", "restaurant", "gift", "promotional"] },
+          "faceValue": { "type": "number", "nullable": true },
+          "discountPercentage": { "type": "number", "nullable": true },
+          "currencyCode": { "type": "string" },
+          "assignedToUserId": { "type": "string", "format": "uuid", "nullable": true },
+          "status": { "type": "string", "enum": ["issued", "active", "redeemed", "expired", "cancelled"] },
+          "issuedAt": { "type": "string", "format": "date-time" },
+          "redeemedAt": { "type": "string", "format": "date-time", "nullable": true },
+          "expiredAt": { "type": "string", "format": "date-time", "nullable": true },
+          "createdAt": { "type": "string", "format": "date-time" }
+        },
+        "required": ["id", "templateId", "code", "voucherType", "currencyCode", "status", "issuedAt"]
+      },
+      "Coupon": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "templateId": { "type": "string", "format": "uuid" },
+          "code": { "type": "string" },
+          "couponType": { "type": "string", "enum": ["percentage", "fixed_discount", "free_shipping", "buy_one_get_one", "fixed_amount_off"] },
+          "discountValue": { "type": "number" },
+          "discountPercentage": { "type": "number", "nullable": true },
+          "currencyCode": { "type": "string" },
+          "assignedToUserId": { "type": "string", "format": "uuid", "nullable": true },
+          "isSingleUse": { "type": "boolean" },
+          "timesUsed": { "type": "integer" },
+          "status": { "type": "string", "enum": ["issued", "active", "redeemed", "expired", "cancelled"] },
+          "issuedAt": { "type": "string", "format": "date-time" },
+          "firstUsedAt": { "type": "string", "format": "date-time", "nullable": true },
+          "lastUsedAt": { "type": "string", "format": "date-time", "nullable": true },
+          "createdAt": { "type": "string", "format": "date-time" }
+        },
+        "required": ["id", "templateId", "code", "couponType", "discountValue", "currencyCode", "isSingleUse", "timesUsed", "status"]
+      },
+      "Campaign": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "name": { "type": "string" },
+          "description": { "type": "string", "nullable": true },
+          "campaignType": { "type": "string", "enum": ["points_bonus", "voucher", "discount", "cashback", "challenge", "referral", "targeted_promotion", "sponsored_offer"] },
+          "status": { "type": "string", "enum": ["draft", "scheduled", "active", "paused", "completed", "cancelled"] },
+          "organisationId": { "type": "string", "format": "uuid", "nullable": true },
+          "merchantId": { "type": "string", "format": "uuid", "nullable": true },
+          "startsAt": { "type": "string", "format": "date-time" },
+          "endsAt": { "type": "string", "format": "date-time" },
+          "budget": { "type": "number", "nullable": true },
+          "currencyCode": { "type": "string" },
+          "applicationCode": { "type": "string", "nullable": true },
+          "imageUrl": { "type": "string", "nullable": true },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "updatedAt": { "type": "string", "format": "date-time" }
+        },
+        "required": ["id", "name", "campaignType", "status", "startsAt", "endsAt", "currencyCode"]
+      },
+      "Notification": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "userId": { "type": "string", "format": "uuid" },
+          "notificationType": { "type": "string" },
+          "category": { "type": "string", "enum": ["transactional", "marketing", "security", "loyalty"] },
+          "title": { "type": "string" },
+          "body": { "type": "string" },
+          "data": { "type": "object", "additionalProperties": true, "nullable": true },
+          "isRead": { "type": "boolean" },
+          "readAt": { "type": "string", "format": "date-time", "nullable": true },
+          "applicationCode": { "type": "string", "nullable": true },
+          "createdAt": { "type": "string", "format": "date-time" }
+        },
+        "required": ["id", "userId", "notificationType", "category", "title", "body", "isRead", "createdAt"]
+      },
+      "AnalyticsEvent": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "eventId": { "type": "string" },
+          "eventName": { "type": "string" },
+          "userId": { "type": "string", "format": "uuid", "nullable": true },
+          "anonymousId": { "type": "string", "nullable": true },
+          "sessionId": { "type": "string", "nullable": true },
+          "organisationId": { "type": "string", "format": "uuid", "nullable": true },
+          "merchantId": { "type": "string", "format": "uuid", "nullable": true },
+          "applicationCode": { "type": "string", "nullable": true },
+          "screenName": { "type": "string", "nullable": true },
+          "timestamp": { "type": "string", "format": "date-time" },
+          "countryCode": { "type": "string", "nullable": true },
+          "properties": { "type": "object", "additionalProperties": true }
+        },
+        "required": ["id", "eventId", "eventName", "timestamp", "properties"]
+      },
+      "CrossServiceTransactionRequest": {
+        "type": "object",
+        "properties": {
+          "userId": { "type": "string", "format": "uuid" },
+          "merchantId": { "type": "string", "format": "uuid" },
+          "amount": { "type": "number", "exclusiveMinimum": 0 },
+          "currencyCode": { "type": "string", "default": "MUR" },
+          "applicationCode": { "type": "string", "default": "uwin" },
+          "idempotencyKey": { "type": "string" },
+          "campaignId": { "type": "string", "format": "uuid", "nullable": true }
+        },
+        "required": ["userId", "merchantId", "amount"]
+      },
+      "CrossServiceTransactionResult": {
+        "type": "object",
+        "properties": {
+          "wallet_transaction_id": { "type": "string", "format": "uuid" },
+          "reward_transaction_id": { "type": "string", "format": "uuid", "nullable": true },
+          "analytics_event_id": { "type": "string", "format": "uuid" },
+          "notification_id": { "type": "string", "format": "uuid", "nullable": true },
+          "audit_log_id": { "type": "string", "format": "uuid" },
+          "points_earned": { "type": "integer" },
+          "new_balance": { "type": "integer" },
+          "merchant_name": { "type": "string" },
+          "amount": { "type": "number" }
+        }
+      },
+      "SSOTokenExchangeRequest": {
+        "type": "object",
+        "properties": {
+          "targetApplication": { "type": "string", "enum": ["uwin", "uwin_rewards", "uwin_market", "uwin_services", "uwin_travel", "uwin_business", "uwin_resto", "retailflow", "retailflow_resto", "platform_admin"] },
+          "sessionToken": { "type": "string", "description": "Current Supabase session JWT" }
+        },
+        "required": ["targetApplication", "sessionToken"]
+      },
+      "SSOTokenExchangeResponse": {
+        "type": "object",
+        "properties": {
+          "accessToken": { "type": "string", "description": "Scoped access token for the target application" },
+          "expiresAt": { "type": "string", "format": "date-time" },
+          "applicationCode": { "type": "string" },
+          "userId": { "type": "string", "format": "uuid" }
+        },
+        "required": ["accessToken", "expiresAt", "applicationCode", "userId"]
+      }
+    },
+    "parameters": {
+      PageParam: {
+        "name": "page",
+        "in": "query",
+        "schema": { "type": "integer", "minimum": 1, "default": 1 },
+        "description": "Page number"
+      },
+      PageSizeParam: {
+        "name": "pageSize",
+        "in": "query",
+        "schema": { "type": "integer", "minimum": 1, "maximum": 100, "default": 20 },
+        "description": "Items per page (max 100)"
+      },
+      SearchParam: {
+        "name": "search",
+        "in": "query",
+        "schema": { "type": "string" },
+        "description": "Search query"
+      },
+      SortByParam: {
+        "name": "sortBy",
+        "in": "query",
+        "schema": { "type": "string" },
+        "description": "Field to sort by"
+      },
+      SortOrderParam: {
+        "name": "sortOrder",
+        "in": "query",
+        "schema": { "type": "string", "enum": ["asc", "desc"], "default": "desc" },
+        "description": "Sort direction"
+      }
+    }
+  },
+  "security": [{ "bearerAuth": [] }],
+  "paths": {
+    "/users": {
+      "get": {
+        "tags": ["Users"],
+        "summary": "List users",
+        "description": "Returns a paginated list of platform users. Platform admins see all users; regular users see only themselves.",
+        "parameters": [
+          { "$ref": "#/components/parameters/PageParam" },
+          { "$ref": "#/components/parameters/PageSizeParam" },
+          { "$ref": "#/components/parameters/SearchParam" },
+          { "$ref": "#/components/parameters/SortByParam" },
+          { "$ref": "#/components/parameters/SortOrderParam" }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated list of users",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/ApiListResponse" },
+                    { "type": "object", "properties": { "data": { "type": "array", "items": { "$ref": "#/components/schemas/User" } } } }
+                  ]
+                }
+              }
+            }
+          },
+          "401": { "description": "Unauthorized", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ApiError" } } } }
+        }
+      }
+    },
+    "/users/{userId}": {
+      "get": {
+        "tags": ["Users"],
+        "summary": "Get user by ID",
+        "parameters": [
+          { "name": "userId", "in": "path", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "responses": {
+          "200": { "description": "User details", "content": { "application/json": { "schema": { "allOf": [{ "$ref": "#/components/schemas/ApiResponse" }, { "type": "object", "properties": { "data": { "$ref": "#/components/schemas/User" } } }] } } } },
+          "404": { "description": "Not found", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ApiError" } } } }
+        }
+      }
+    },
+    "/profiles": {
+      "get": {
+        "tags": ["Profiles"],
+        "summary": "List profiles",
+        "parameters": [
+          { "$ref": "#/components/parameters/PageParam" },
+          { "$ref": "#/components/parameters/PageSizeParam" },
+          { "$ref": "#/components/parameters/SearchParam" }
+        ],
+        "responses": {
+          "200": { "description": "Paginated list of profiles", "content": { "application/json": { "schema": { "allOf": [{ "$ref": "#/components/schemas/ApiListResponse" }, { "type": "object", "properties": { "data": { "type": "array", "items": { "$ref": "#/components/schemas/Profile" } } } }] } } } }
+        }
+      }
+    },
+    "/profiles/{profileId}": {
+      "get": {
+        "tags": ["Profiles"],
+        "summary": "Get profile by ID",
+        "parameters": [{ "name": "profileId", "in": "path", "required": true, "schema": { "type": "string", "format": "uuid" } }],
+        "responses": {
+          "200": { "description": "Profile details", "content": { "application/json": { "schema": { "allOf": [{ "$ref": "#/components/schemas/ApiResponse" }, { "type": "object", "properties": { "data": { "$ref": "#/components/schemas/Profile" } } }] } } } },
+          "404": { "description": "Not found", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ApiError" } } } }
+        }
+      },
+      "put": {
+        "tags": ["Profiles"],
+        "summary": "Update profile",
+        "parameters": [{ "name": "profileId", "in": "path", "required": true, "schema": { "type": "string", "format": "uuid" } }],
+        "requestBody": { "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Profile" } } } },
+        "responses": {
+          "200": { "description": "Updated profile", "content": { "application/json": { "schema": { "allOf": [{ "$ref": "#/components/schemas/ApiResponse" }, { "type": "object", "properties": { "data": { "$ref": "#/components/schemas/Profile" } } }] } } } }
+        }
+      }
+    },
+    "/organisations": {
+      "get": {
+        "tags": ["Organisations"],
+        "summary": "List organisations",
+        "parameters": [
+          { "$ref": "#/components/parameters/PageParam" },
+          { "$ref": "#/components/parameters/PageSizeParam" },
+          { "$ref": "#/components/parameters/SearchParam" }
+        ],
+        "responses": {
+          "200": { "description": "Paginated list of organisations", "content": { "application/json": { "schema": { "allOf": [{ "$ref": "#/components/schemas/ApiListResponse" }, { "type": "object", "properties": { "data": { "type": "array", "items": { "$ref": "#/components/schemas/Organisation" } } } }] } } } }
+        }
+      },
+      "post": {
+        "tags": ["Organisations"],
+        "summary": "Create organisation",
+        "requestBody": { "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Organisation" } } } },
+        "responses": {
+          "201": { "description": "Created organisation", "content": { "application/json": { "schema": { "allOf": [{ "$ref": "#/components/schemas/ApiResponse" }, { "type": "object", "properties": { "data": { "$ref": "#/components/schemas/Organisation" } } }] } } } }
+        }
+      }
+    },
+    "/merchants": {
+      "get": {
+        "tags": ["Merchants"],
+        "summary": "List merchants",
+        "parameters": [
+          { "$ref": "#/components/parameters/PageParam" },
+          { "$ref": "#/components/parameters/PageSizeParam" },
+          { "$ref": "#/components/parameters/SearchParam" },
+          { "name": "categoryCode", "in": "query", "schema": { "type": "string" }, "description": "Filter by category code" },
+          { "name": "countryCode", "in": "query", "schema": { "type": "string" }, "description": "Filter by country" }
+        ],
+        "responses": {
+          "200": { "description": "Paginated list of merchants", "content": { "application/json": { "schema": { "allOf": [{ "$ref": "#/components/schemas/ApiListResponse" }, { "type": "object", "properties": { "data": { "type": "array", "items": { "$ref": "#/components/schemas/Merchant" } } } }] } } } }
+        }
+      }
+    },
+    "/wallets": {
+      "get": {
+        "tags": ["Wallet"],
+        "summary": "List wallets (own or admin)",
+        "parameters": [{ "$ref": "#/components/parameters/PageParam" }, { "$ref": "#/components/parameters/PageSizeParam" }],
+        "responses": {
+          "200": { "description": "Paginated list of wallets", "content": { "application/json": { "schema": { "allOf": [{ "$ref": "#/components/schemas/ApiListResponse" }, { "type": "object", "properties": { "data": { "type": "array", "items": { "$ref": "#/components/schemas/Wallet" } } } }] } } } }
+        }
+      }
+    },
+    "/wallets/{walletId}/transactions": {
+      "get": {
+        "tags": ["Wallet"],
+        "summary": "List wallet transactions",
+        "parameters": [
+          { "name": "walletId", "in": "path", "required": true, "schema": { "type": "string", "format": "uuid" } },
+          { "$ref": "#/components/parameters/PageParam" },
+          { "$ref": "#/components/parameters/PageSizeParam" }
+        ],
+        "responses": {
+          "200": { "description": "Paginated wallet transactions", "content": { "application/json": { "schema": { "allOf": [{ "$ref": "#/components/schemas/ApiListResponse" }, { "type": "object", "properties": { "data": { "type": "array", "items": { "$ref": "#/components/schemas/WalletTransaction" } } } }] } } } }
+        }
+      }
+    },
+    "/wallets/cross-service-transaction": {
+      "post": {
+        "tags": ["Wallet"],
+        "summary": "Process cross-service transaction",
+        "description": "Atomically records a wallet transaction, evaluates reward rules, credits points, fires an analytics event, creates a notification, and writes an audit log. Idempotent via idempotencyKey.",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CrossServiceTransactionRequest" } } } },
+        "responses": {
+          "200": { "description": "Transaction result", "content": { "application/json": { "schema": { "allOf": [{ "$ref": "#/components/schemas/ApiResponse" }, { "type": "object", "properties": { "data": { "$ref": "#/components/schemas/CrossServiceTransactionResult" } } }] } } } },
+          "400": { "description": "Invalid request", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ApiError" } } } }
+        }
+      }
+    },
+    "/rewards": {
+      "get": {
+        "tags": ["Rewards"],
+        "summary": "List reward programmes",
+        "parameters": [{ "$ref": "#/components/parameters/PageParam" }, { "$ref": "#/components/parameters/PageSizeParam" }],
+        "responses": {
+          "200": { "description": "Paginated list of reward programmes", "content": { "application/json": { "schema": { "allOf": [{ "$ref": "#/components/schemas/ApiListResponse" }, { "type": "object", "properties": { "data": { "type": "array", "items": { "$ref": "#/components/schemas/RewardProgramme" } } } }] } } } }
+        }
+      }
+    },
+    "/rewards/accounts": {
+      "get": {
+        "tags": ["Rewards"],
+        "summary": "List reward accounts (own or admin)",
+        "parameters": [{ "$ref": "#/components/parameters/PageParam" }, { "$ref": "#/components/parameters/PageSizeParam" }],
+        "responses": {
+          "200": { "description": "Paginated list of reward accounts", "content": { "application/json": { "schema": { "allOf": [{ "$ref": "#/components/schemas/ApiListResponse" }, { "type": "object", "properties": { "data": { "type": "array", "items": { "$ref": "#/components/schemas/RewardAccount" } } } }] } } } }
+        }
+      }
+    },
+    "/vouchers": {
+      "get": {
+        "tags": ["Vouchers"],
+        "summary": "List vouchers (own or admin)",
+        "parameters": [{ "$ref": "#/components/parameters/PageParam" }, { "$ref": "#/components/parameters/PageSizeParam" }],
+        "responses": {
+          "200": { "description": "Paginated list of vouchers", "content": { "application/json": { "schema": { "allOf": [{ "$ref": "#/components/schemas/ApiListResponse" }, { "type": "object", "properties": { "data": { "type": "array", "items": { "$ref": "#/components/schemas/Voucher" } } } }] } } } }
+        }
+      }
+    },
+    "/vouchers/{voucherId}/redeem": {
+      "post": {
+        "tags": ["Vouchers"],
+        "summary": "Redeem a voucher",
+        "parameters": [{ "name": "voucherId", "in": "path", "required": true, "schema": { "type": "string", "format": "uuid" } }],
+        "requestBody": { "content": { "application/json": { "schema": { "type": "object", "properties": { "merchantId": { "type": "string", "format": "uuid" }, "transactionAmount": { "type": "number" }, "applicationCode": { "type": "string" } } } } } },
+        "responses": {
+          "200": { "description": "Voucher redeemed", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ApiResponse" } } } },
+          "400": { "description": "Cannot redeem", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ApiError" } } } }
+        }
+      }
+    },
+    "/coupons": {
+      "get": {
+        "tags": ["Coupons"],
+        "summary": "List coupons",
+        "parameters": [{ "$ref": "#/components/parameters/PageParam" }, { "$ref": "#/components/parameters/PageSizeParam" }],
+        "responses": {
+          "200": { "description": "Paginated list of coupons", "content": { "application/json": { "schema": { "allOf": [{ "$ref": "#/components/schemas/ApiListResponse" }, { "type": "object", "properties": { "data": { "type": "array", "items": { "$ref": "#/components/schemas/Coupon" } } } }] } } } }
+        }
+      }
+    },
+    "/coupons/redeem": {
+      "post": {
+        "tags": ["Coupons"],
+        "summary": "Redeem a coupon by code",
+        "description": "Validates coupon eligibility, records redemption, increments usage counter, returns discount applied.",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "type": "object", "properties": { "couponCode": { "type": "string" }, "merchantId": { "type": "string", "format": "uuid" }, "orderAmount": { "type": "number" }, "applicationCode": { "type": "string" } }, "required": ["couponCode"] } } } },
+        "responses": {
+          "200": { "description": "Coupon redeemed", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ApiResponse" } } } },
+          "400": { "description": "Coupon invalid or expired", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ApiError" } } } }
+        }
+      }
+    },
+    "/campaigns": {
+      "get": {
+        "tags": ["Campaigns"],
+        "summary": "List campaigns",
+        "parameters": [
+          { "$ref": "#/components/parameters/PageParam" },
+          { "$ref": "#/components/parameters/PageSizeParam" },
+          { "$ref": "#/components/parameters/SearchParam" },
+          { "name": "status", "in": "query", "schema": { "type": "string" } },
+          { "name": "applicationCode", "in": "query", "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Paginated list of campaigns", "content": { "application/json": { "schema": { "allOf": [{ "$ref": "#/components/schemas/ApiListResponse" }, { "type": "object", "properties": { "data": { "type": "array", "items": { "$ref": "#/components/schemas/Campaign" } } } }] } } } }
+        }
+      },
+      "post": {
+        "tags": ["Campaigns"],
+        "summary": "Create campaign",
+        "requestBody": { "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Campaign" } } } },
+        "responses": {
+          "201": { "description": "Created campaign", "content": { "application/json": { "schema": { "allOf": [{ "$ref": "#/components/schemas/ApiResponse" }, { "type": "object", "properties": { "data": { "$ref": "#/components/schemas/Campaign" } } }] } } } }
+        }
+      }
+    },
+    "/notifications": {
+      "get": {
+        "tags": ["Notifications"],
+        "summary": "List notifications (own)",
+        "parameters": [
+          { "$ref": "#/components/parameters/PageParam" },
+          { "$ref": "#/components/parameters/PageSizeParam" },
+          { "name": "isRead", "in": "query", "schema": { "type": "boolean" } }
+        ],
+        "responses": {
+          "200": { "description": "Paginated list of notifications", "content": { "application/json": { "schema": { "allOf": [{ "$ref": "#/components/schemas/ApiListResponse" }, { "type": "object", "properties": { "data": { "type": "array", "items": { "$ref": "#/components/schemas/Notification" } } } }] } } } }
+        }
+      }
+    },
+    "/notifications/{notificationId}/read": {
+      "post": {
+        "tags": ["Notifications"],
+        "summary": "Mark notification as read",
+        "parameters": [{ "name": "notificationId", "in": "path", "required": true, "schema": { "type": "string", "format": "uuid" } }],
+        "responses": {
+          "200": { "description": "Marked as read", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ApiResponse" } } } }
+        }
+      }
+    },
+    "/analytics/events": {
+      "get": {
+        "tags": ["Analytics"],
+        "summary": "List analytics events (admin)",
+        "parameters": [
+          { "$ref": "#/components/parameters/PageParam" },
+          { "$ref": "#/components/parameters/PageSizeParam" },
+          { "name": "eventName", "in": "query", "schema": { "type": "string" } },
+          { "name": "applicationCode", "in": "query", "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Paginated list of analytics events", "content": { "application/json": { "schema": { "allOf": [{ "$ref": "#/components/schemas/ApiListResponse" }, { "type": "object", "properties": { "data": { "type": "array", "items": { "$ref": "#/components/schemas/AnalyticsEvent" } } } }] } } } }
+        }
+      },
+      "post": {
+        "tags": ["Analytics"],
+        "summary": "Record analytics event",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/AnalyticsEvent" } } } },
+        "responses": {
+          "201": { "description": "Event recorded", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ApiResponse" } } } }
+        }
+      }
+    },
+    "/auth/token": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "SSO token exchange",
+        "description": "Exchanges a current Supabase session token for a scoped access token for a target application. Used for cross-app SSO within the uWin/RetailFlow ecosystem.",
+        "security": [],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/SSOTokenExchangeRequest" } } } },
+        "responses": {
+          "200": { "description": "Scoped access token", "content": { "application/json": { "schema": { "allOf": [{ "$ref": "#/components/schemas/ApiResponse" }, { "type": "object", "properties": { "data": { "$ref": "#/components/schemas/SSOTokenExchangeResponse" } } }] } } } },
+          "401": { "description": "Invalid session token", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ApiError" } } } }
+        }
+      }
+    }
+  }
+}
