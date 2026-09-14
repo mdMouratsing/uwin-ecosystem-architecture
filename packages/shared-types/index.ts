@@ -41,6 +41,46 @@ export type MerchantStatus =
   | 'suspended'
   | 'inactive';
 
+export type MerchantCategoryCode =
+  | 'grocery'
+  | 'restaurant'
+  | 'fashion'
+  | 'electronics'
+  | 'health_beauty'
+  | 'home_goods'
+  | 'fuel'
+  | 'travel_tourism'
+  | 'services'
+  | 'hotels'
+  | 'entertainment'
+  | 'pharmacy'
+  | 'health';
+
+export type ServiceCategoryCode =
+  | 'home'
+  | 'repairs'
+  | 'maintenance'
+  | 'beauty'
+  | 'wellness'
+  | 'education'
+  | 'professional'
+  | 'utilities'
+  | 'telecom'
+  | 'appointments'
+  | 'health';
+
+export type ServiceSubcategoryCode =
+  | 'gp'
+  | 'dental'
+  | 'eye_care'
+  | 'manual_therapy'
+  | 'plumbing'
+  | 'electrical'
+  | 'cleaning'
+  | 'spa'
+  | 'massage'
+  | 'facial';
+
 export type VoucherStatus =
   | 'issued'
   | 'active'
@@ -429,7 +469,7 @@ export interface Merchant {
 export interface MerchantCategory {
   id: UUID;
   merchantId: UUID;
-  categoryCode: string;
+  categoryCode: MerchantCategoryCode;
   isPrimary: boolean;
   createdAt: ISO8601;
 }
@@ -474,6 +514,52 @@ export interface MerchantChannel {
   isEnabled: boolean;
   activatedAt: ISO8601 | null;
   createdAt: ISO8601;
+}
+
+// ---------------------------------------------------------------------------
+// Service Providers (app-specific extension referencing shared merchants)
+// ---------------------------------------------------------------------------
+
+export interface ServiceProvider {
+  id: UUID;
+  merchantId: UUID;
+  name: string;
+  description: string | null;
+  categoryCode: ServiceCategoryCode;
+  subcategoryCode: ServiceSubcategoryCode | null;
+  rating: number | null;
+  city: string | null;
+  priceFrom: number | null;
+  currencyCode: CurrencyCode;
+  status: EntityStatus;
+  createdAt: ISO8601;
+  updatedAt: ISO8601;
+}
+
+export interface ProviderService {
+  id: UUID;
+  providerId: UUID;
+  name: string;
+  description: string | null;
+  price: number;
+  currencyCode: CurrencyCode;
+  durationMin: number | null;
+  isActive: boolean;
+  createdAt: ISO8601;
+}
+
+export interface ServiceBooking {
+  id: UUID;
+  providerId: UUID;
+  userId: UUID;
+  serviceId: UUID;
+  scheduledAt: ISO8601;
+  status: EntityStatus;
+  price: number;
+  currencyCode: CurrencyCode;
+  notes: string | null;
+  createdAt: ISO8601;
+  updatedAt: ISO8601;
 }
 
 // ---------------------------------------------------------------------------

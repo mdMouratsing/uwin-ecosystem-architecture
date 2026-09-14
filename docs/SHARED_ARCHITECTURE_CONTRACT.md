@@ -1,8 +1,8 @@
 ```text
 Document: IDS uWin & RetailFlow Shared Architecture Contract
-Version: 1.1
+Version: 1.2
 Status: Foundation Architecture (All Open Decisions Resolved)
-Last Updated: 2026-09-11
+Last Updated: 2026-09-14
 Owner: IDS — Intelligent Digitalisation Solutions
 ```
 
@@ -254,6 +254,12 @@ audit_logs
 
 integration_configs
 webhook_subscriptions
+
+service_categories
+service_subcategories
+service_providers
+provider_services
+service_bookings
 ```
 
 ### Status Enums (Implemented)
@@ -266,6 +272,7 @@ webhook_subscriptions
 | Coupon | `issued`, `active`, `redeemed`, `expired`, `cancelled` |
 | Campaign | `draft`, `scheduled`, `active`, `paused`, `completed`, `cancelled` |
 | Wallet Transaction | `pending`, `completed`, `failed`, `reversed` |
+| Service Booking | `pending`, `confirmed`, `completed`, `cancelled`, `scheduled` |
 
 ---
 
@@ -485,7 +492,7 @@ transfer
 | Concept | Definition |
 |---------|-----------|
 | **Voucher** | A digital instrument with a unique code, issued from a template, assigned to a user, redeemable at merchants. Has face value or discount percentage. Stored in `vouchers` table. |
-| **Coupon / Promo Code** | A promotional code applied at checkout for a discount. Distinct from a wallet voucher. (Planned — not yet implemented as a separate table.) |
+| **Coupon / Promo Code** | A promotional code applied at checkout for a discount. Distinct from a wallet voucher. Stored in `coupon_templates`, `coupons`, `coupon_redemptions` tables with `redeem_coupon()` function. |
 | **Loyalty Reward** | Points earned through the Rewards Engine, stored as `reward_transactions` and reflected in `reward_accounts.current_balance`. Not a voucher. |
 | **Campaign** | A time-bound promotional initiative that may issue vouchers, bonus points, discounts, or cashback. Stored in `campaigns` table. |
 
@@ -503,6 +510,46 @@ transfer
 - **Record source/channel:** `campaigns.application_code` and `campaign_redemptions.application_code`
 - **Create/Manage:** Requires organisation membership (RLS enforced)
 - **Approve/Activate:** `campaigns.status` is a privileged column — UPDATE revoked from `authenticated`, changes go through privileged functions
+
+---
+
+## 12a. Service Provider & Booking Architecture
+
+**Implemented.**
+
+### Purpose
+
+Service providers are businesses that offer bookable services (e.g. doctor consultations, dental appointments, spa sessions, home repairs). They extend the central merchant directory — every provider links to a merchant via `merchant_id`.
+
+### Merchant Categories
+
+The `health` merchant category ("Health & Medical") is distinct from:
+- `pharmacy` — medicine retailers (dispensaries, chemists)
+- `health_beauty` — cosmetic and skincare retailers
+
+`health` covers medical service providers (clinics, dentists, opticians, osteopaths, chiropractors, etc.).
+
+### Service Taxonomy
+
+A two-level taxonomy:
+
+- `service_categories` — 11 top-level categories (home, repairs, maintenance, beauty, wellness, education, professional, utilities, telecom, appointments, health)
+- `service_subcategories` — subcategories per parent (e.g. health → GP, Dental, Eye Care, Manual Therapy)
+
+Config constants in `packages/config/index.ts`: `SERVICE_CATEGORIES`, `SERVICE_SUBCATEGORIES`. Type unions in `packages/shared-types`: `ServiceCategoryCode`, `ServiceSubcategoryCode`.
+
+### Tables
+
+- `service_providers` — linked to merchants, with category, subcategory, rating, city, pricing
+- `provider_services` — individual services offered by a provider (name, price, duration)
+- `service_bookings` — user bookings for a specific provider service (scheduled time, status, price)
+
+### Access Control
+
+- All authenticated users can view providers and services (public directory)
+- Organisation members can create/update/delete providers and services for their merchants
+- Users can create bookings for themselves; org members can update booking status (confirm, cancel)
+- Users can view their own bookings; org members can view bookings for their providers
 
 ---
 
@@ -548,6 +595,7 @@ transfer
 /api/v1/wallets
 /api/v1/rewards
 /api/v1/vouchers
+/api/v1/coupons
 /api/v1/campaigns
 /api/v1/notifications
 /api/v1/analytics
@@ -961,6 +1009,9 @@ MerchantCategory
 MerchantLocation
 MerchantCapability
 MerchantChannel
+ServiceProvider
+ProviderService
+ServiceBooking
 Wallet
 WalletAccount
 WalletAsset
@@ -1023,6 +1074,9 @@ VoucherType
 CouponType
 CouponStatus
 CampaignType
+MerchantCategoryCode
+ServiceCategoryCode
+ServiceSubcategoryCode
 NotificationType
 NotificationChannelType
 NotificationCategory
@@ -1054,6 +1108,7 @@ Future apps must not create independent versions of:
 - Voucher infrastructure
 - Coupon / promo code infrastructure
 - Campaign infrastructure
+- Service provider / booking infrastructure
 - Notification preferences
 - RBAC infrastructure
 - Shared analytics conventions
@@ -1160,4 +1215,4 @@ Mauritian Creole (`mfe`) is not required and will not be added unless explicitly
 
 ---
 
-*End of Architecture Contract v1.1*
+*End of Architecture Contract v1.2*

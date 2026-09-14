@@ -2,7 +2,7 @@
 // uWin & RetailFlow — Shared Platform Configuration
 // ============================================================================
 
-import type { ApplicationCode, CountryCode, CurrencyCode, LanguageCode } from '../shared-types';
+import type { ApplicationCode, CountryCode, CurrencyCode, LanguageCode, MerchantCategoryCode, ServiceCategoryCode, ServiceSubcategoryCode } from '../shared-types';
 
 // ---------------------------------------------------------------------------
 // Countries
@@ -302,7 +302,62 @@ export const MERCHANT_CATEGORIES = [
   { code: 'hotels', name: 'Hotels & Accommodation' },
   { code: 'entertainment', name: 'Entertainment & Leisure' },
   { code: 'pharmacy', name: 'Pharmacy & Health' },
-] as const;
+  { code: 'health', name: 'Health & Medical' },
+] as const satisfies readonly { code: MerchantCategoryCode; name: string }[];
+
+// ---------------------------------------------------------------------------
+// Service Categories
+// ---------------------------------------------------------------------------
+
+export const SERVICE_CATEGORIES: { code: ServiceCategoryCode; name: string }[] = [
+  { code: 'home', name: 'Home' },
+  { code: 'repairs', name: 'Repairs' },
+  { code: 'maintenance', name: 'Maintenance' },
+  { code: 'beauty', name: 'Beauty' },
+  { code: 'wellness', name: 'Wellness' },
+  { code: 'education', name: 'Education' },
+  { code: 'professional', name: 'Professional' },
+  { code: 'utilities', name: 'Utilities' },
+  { code: 'telecom', name: 'Telecom' },
+  { code: 'appointments', name: 'Appointments' },
+  { code: 'health', name: 'Health' },
+];
+
+// ---------------------------------------------------------------------------
+// Service Subcategories
+// ---------------------------------------------------------------------------
+
+export const SERVICE_SUBCATEGORIES: Record<
+  ServiceCategoryCode,
+  { code: ServiceSubcategoryCode; name: string }[]
+> = {
+  home: [],
+  repairs: [
+    { code: 'plumbing', name: 'Plumbing' },
+    { code: 'electrical', name: 'Electrical' },
+  ],
+  maintenance: [
+    { code: 'cleaning', name: 'Cleaning' },
+  ],
+  beauty: [
+    { code: 'facial', name: 'Facials' },
+  ],
+  wellness: [
+    { code: 'spa', name: 'Spa' },
+    { code: 'massage', name: 'Massage' },
+  ],
+  education: [],
+  professional: [],
+  utilities: [],
+  telecom: [],
+  appointments: [],
+  health: [
+    { code: 'gp', name: 'General Practitioner' },
+    { code: 'dental', name: 'Dental' },
+    { code: 'eye_care', name: 'Eye Care' },
+    { code: 'manual_therapy', name: 'Manual Therapy' },
+  ],
+};
 
 // ---------------------------------------------------------------------------
 // Status Definitions (for UI display)
